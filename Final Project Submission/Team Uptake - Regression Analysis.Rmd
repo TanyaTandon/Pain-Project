@@ -1,0 +1,200 @@
+---
+title: "Uptake"
+author: "Saurabh Annadate"
+date: "7 December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Reading the data
+```{r}
+rm(list = ls())
+spine <- read.csv('spine_df.csv')
+chest <- read.csv('chest_df.csv')
+
+```
+
+
+#Modifying fields for regression
+```{r}
+spine$PatientGender <- spine$PatientGender - 1
+
+spine$Genetics <- spine$Genetics - 1
+
+
+spine$Risser[spine$Risser == 777] <- -9999
+
+
+
+spine$Bottomdegree[spine$Bottomdegree == 999] <- -9999
+
+
+spine <- spine[spine$Shape < 777,]
+
+spine$PatientPredictive[spine$PatientPredictive > 100] <- -9999
+
+spine$ParentPredictive[spine$ParentPredictive > 100] <- -9999
+
+summary(spine)
+
+```
+
+# Creating time buckets
+```{r}
+
+spine$postOp0_24Hrs <- (spine$Hrs0_12MeanPainScoreVASstd + spine$Hrs13_24MeanPainScoreVASstd) / 2
+
+spine$postOp24_48Hrs <- (spine$Hrs25_36MeanPainScoreVASstd + spine$Hrs37_48MeanPainScoreVASstd) / 2
+
+spine$postOp48_72Hrs <- (spine$Hrs49_60MeanPainScoreVASstd + spine$Hrs61_72MeanPainScoreVASstd) / 2
+
+spine$postOp0_72Hrs <- (spine$postOp0_24Hrs + spine$postOp24_48Hrs + spine$postOp48_72Hrs) / 3
+
+
+```
+
+
+#Regression Model for 0-24hrs pain
+```{r}
+spinelm1 <- lm(postOp0_24Hrs~
+               Genetics +
+              PatientGender +
+              PatientAge +
+              PatientWeight +
+              as.factor(PatientRace) +
+              Risser +
+              Toplevel +
+              Bottomlevel +
+              as.factor(Shape) +
+              Topdegree +
+              Bottomdegree +
+              SurgeryHX +
+              ASA +
+              as.factor(Surgeon) +
+              as.factor(ComplementaryTherapy) +
+              PatientPredictive +
+              ParentPredictive 
+
+  
+  ,
+  data = spine
+  
+)
+spinelm1step <- step(spinelm1, trace = 0)
+summary(spinelm1step)
+```
+
+
+#Regression Model for 0-72hrs pain
+```{r}
+spinelm4 <- lm(postOp0_72Hrs~
+               Genetics +
+              PatientGender +
+              PatientAge +
+              PatientWeight +
+              as.factor(PatientRace) +
+              Risser +
+              Toplevel +
+              Bottomlevel +
+              as.factor(Shape) +
+              Topdegree +
+              Bottomdegree +
+              SurgeryHX +
+              ASA +
+              as.factor(Surgeon) +
+              as.factor(ComplementaryTherapy) +
+              PatientPredictive +
+              ParentPredictive 
+
+  
+  ,
+  data = spine
+  
+)
+spinelm4step <- step(spinelm4, trace = 0)
+summary(spinelm4step)
+
+```
+
+# Chest Analysis begins here
+
+```{r}
+chest$PatientGender <- chest$PatientGender - 1
+
+chest$Genetics <- chest$Genetics - 1
+
+chest$PatientPredictive[chest$PatientPredictive > 100] <- -9999
+
+chest$ParentPredictive[chest$ParentPredictive > 100] <- -9999
+
+#summary(chest)
+
+```
+# Creating time buckets
+```{r}
+chest$postOp0_24Hrs <- (chest$Hrs0_12MeanPainScoreVASstd + chest$Hrs13_24MeanPainScoreVASstd) / 2
+
+chest$postOp24_48Hrs <- (chest$Hrs25_36MeanPainScoreVASstd + chest$Hrs37_48MeanPainScoreVASstd) / 2
+
+chest$postOp48_72Hrs <- (chest$Hrs49_60MeanPainScoreVASstd + chest$Hrs61_72MeanPainScoreVASstd) / 2
+
+chest$postOp0_72Hrs <- (chest$postOp0_24Hrs + chest$postOp24_48Hrs + chest$postOp48_72Hrs) / 3
+
+```
+#Regression Model for 0-24hrs pain
+```{r}
+chestlm1 <- lm(postOp0_24Hrs~
+                Genetics +
+                PatientGender +
+                PatientAge +
+                PatientWeight +
+                as.factor(PatientRace) +
+                HallerIndex.999.notapplicable. +
+                SurgeryHX +
+                ASA +
+                as.factor(Surgeon) +
+                as.factor(ComplementaryTherapy) +
+                PatientPredictive +
+                ParentPredictive
+
+
+  
+  ,
+  data = chest
+  
+)
+chestlm1step <- step(chestlm1, trace = 0)
+summary(chestlm1step)
+
+```
+#Regression Model for 0-72hrs pain
+```{r}
+chestlm4 <- lm(postOp0_72Hrs~
+                Genetics +
+                PatientGender +
+                PatientAge +
+                PatientWeight +
+                as.factor(PatientRace) +
+                HallerIndex.999.notapplicable. +
+                SurgeryHX +
+                ASA +
+                as.factor(Surgeon) +
+                as.factor(ComplementaryTherapy) +
+                PatientPredictive +
+                ParentPredictive
+
+
+  
+  ,
+  data = chest
+  
+)
+chestlm4step <- step(chestlm4, trace = 0)
+summary(chestlm4step)
+
+
+```
+
